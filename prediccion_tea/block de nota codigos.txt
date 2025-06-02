@@ -1,0 +1,116 @@
+# Importar librerías necesarias
+import pandas as pd
+from scipy.io import arff #para cargar conjuntos de datos en formato ARFF
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Cargar el archivo .arff con la ruta desde HOME
+data, meta = arff.loadarff("prediccion_tea/data/raw/Autism-Child-Data.arff")
+
+# Convertir a DataFrame
+df = pd.DataFrame(data)
+
+# Mostrar las primeras filas
+print(df.head())
+
+# Hay columnas con strings en formato bytes (b''), convertirlas a strings normales
+for col in df.select_dtypes(include=['object']).columns:
+    df[col] = df[col].str.decode('utf-8')
+
+# Verificar la estructura del dataset
+print("Número de filas y columnas:", df.shape)
+
+# Mostrar nombres de todas las columnas del DataFrame
+print("Nombres de columnas:")
+print(df.columns)
+
+print("Tipos de datos:", df.info())
+print("Presencia de valores nulos:", df.isnull().sum())
+
+# Obtener los valores únicos en cada columna
+for columna in df.columns:
+    print(f"Valores únicos en la columna '{columna}':")
+    print(df[columna].unique())
+    print("-" * 50)
+
+
+
+# Cantidad de casos por clase
+conteo = df['Class/ASD'].value_counts()
+print("Cantidad de casos por clase:")
+print(conteo)
+
+# Porcentaje por clase
+porcentaje = df['Class/ASD'].value_counts(normalize=True) * 100
+print("\nPorcentaje de casos por clase:")
+print(porcentaje)
+
+# Visualización de la distribución
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+plt.figure(figsize=(6, 4))
+sns.countplot(data=df, x='Class/ASD', hue='Class/ASD', palette='Set2', legend=False)
+plt.title("Distribución de la variable objetivo ('Class/ASD')")
+plt.xlabel("Diagnóstico (NO = sin autismo, YES = con autismo)")
+plt.ylabel("Cantidad de observaciones")
+plt.grid(axis='y', linestyle='--', alpha=0.7)
+plt.show()
+
+
+
+# Eliminar variables no relevantes
+df = df.drop(['ethnicity', 'contry_of_res', 'used_app_before',
+       'result', 'age_desc', 'relation'], axis=1)
+
+
+# Convertir columnas categóricas
+df['gender'] = df['gender'].astype('category')
+df['jundice'] = df['jundice'].astype('category')
+df['austim'] = df['austim'].astype('category')
+df['Class/ASD'] = df['Class/ASD'].astype('category')
+
+# Verificar tipo de dato de columnas numéricas
+print(df['age'].dtype)  # Debe ser int64 o float64
+
+# Verificar tipo de dato de columnas de puntuación
+for columna in ['A1_Score', 'A2_Score', 'A3_Score', 'A4_Score', 'A5_Score', 'A6_Score', 'A7_Score', 'A8_Score', 'A9_Score', 'A10_Score']:
+    print(df[columna].dtype)  # Debe ser int64
+
+# Convertir columnas de puntuación a int64 si es necesario
+for columna in ['A1_Score', 'A2_Score', 'A3_Score', 'A4_Score', 'A5_Score', 'A6_Score', 'A7_Score', 'A8_Score', 'A9_Score', 'A10_Score']:
+    df[columna] = df[columna].astype(int)
+
+
+# Verificar la presencia de valores nulos
+print("Presencia de valores nulos después de eliminar variables:", df.isnull().sum())
+
+
+df["age"].describe()
+
+# Reemplazar valores faltantes de age con la moda
+df['age'] = df['age'].fillna(df['age'].mode()[0])
+
+# Verificar que los valores faltantes hayan sido reemplazados correctamente
+print("Presencia de valores nulos después de reemplazar valores faltantes:", df['age'].isnull().sum())
+
+# Verificar la estadística de la columna age después de reemplazar los valores faltantes
+print("Estadísticas de la columna age después de reemplazar valores faltantes:")
+print(df['age'].describe())
+
+# Verificar la estructura de los datos
+print(df.head())
+print(df.info())
+
+import pandas as pd
+
+# One-hot encoding para las columnas gender, jundice y austim
+df = pd.get_dummies(df, columns=['gender', 'jundice', 'austim'])
+
+# Label encoding para la columna Class/ASD
+df['Class/ASD'] = df['Class/ASD'].map({'NO': 0, 'YES': 1})
+
+
+print(df.head())
+print(df.info())
+

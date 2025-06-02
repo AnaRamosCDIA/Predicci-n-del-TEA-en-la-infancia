@@ -1,0 +1,5 @@
+ECHO est  activado.
+*.ipynb_checkpoints
+*.docx
+~$
+*.tmp
